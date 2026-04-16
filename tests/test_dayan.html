@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>YiMind · 大衍筮法 Algorithm Tests</title>
+<style>
+  body { font-family: ui-monospace, "SF Mono", Menlo, monospace; max-width: 800px; margin: 2em auto; padding: 0 1em; }
+  h1 { color: #8B1E1E; }
+  h2 { color: #8B1E1E; border-bottom: 1px solid #8B1E1E; padding-bottom: 4px; }
+  .pass { color: #0a7a0a; }
+  .fail { color: #B72424; font-weight: bold; }
+  table { border-collapse: collapse; margin: 1em 0; }
+  th, td { padding: 4px 12px; border: 1px solid #aaa; text-align: right; }
+  th { background: #E4CDA7; }
+  pre { background: #F7EEDD; padding: 8px; border-left: 3px solid #8B1E1E; }
+</style>
+</head>
+<body>
+<h1>YiMind · 大衍筮法 Tests</h1>
+<div id="out"></div>
+
+<script type="module">
+import { oneBian, oneYao, yaoMeta, autoYao, YAO_THEORETICAL } from "../lib/dayan.js";
+import { deriveHexagrams, hexagramNumber, KW_TO_KEY, KEY_TO_KW, hexagramSymbol } from "../lib/hexagram.js";
+
+const out = document.getElementById("out");
+function log(html) { out.insertAdjacentHTML("beforeend", html); }
+function section(name) { log(`<h2>${name}</h2>`); }
+function ok(msg)   { log(`<div class="pass">✓ ${msg}</div>`); }
+function bad(msg)  { log(`<div class="fail">✗ ${msg}</div>`); }
+function assert(cond, msg) { cond ? ok(msg) : bad(msg); }
+
+// ============================================================================
+// Test 1: one 變 invariants — 1 + left_rem + right_rem ∈ {5, 9} on first 變
+// ============================================================================
+section("Test 1 — 一變 invariants");
+let first = {}, second = {};
+for (let i = 0; i < 1000; i++) {
+  const leftN = 1 + Math.floor(Math.random() * 48);
+  const r = oneBian(49, leftN);
+  first[r.removed] = (first[r.removed] || 0) + 1;
+  const r2 = oneBian(r.remaining, 1 + Math.floor(Math.random() * (r.remaining - 1)));
+  second[r2.removed] = (second[r2.removed] || 0) + 1;
+}
+assert(Object.keys(first).every(k => k === "5" || k === "9"),
+  `1st 變 removed ∈ {5, 9}: saw ${JSON.stringify(first)}`);
+assert(Object.keys(second).every(k => k === "4" || k === "8"),
+  `2nd 變 removed ∈ {4, 8}: saw ${JSON.stringify(second)}`);
+
+// ============================================================================
+// Test 2 — 爻 value distribution. Theory: P(9)=3/16, P(8)=7/16, P(7)=5/16, P(6)=1/16
+// ============================================================================
+section("Test 2 — 爻 value distribution (N=20000)");
+const N = 20000;
+const counts = { 6: 0, 7: 0, 8: 0, 9: 0 };
+for (let i = 0; i < N; i++) counts[autoYao().value]++;
+log("<table><tr><th>值</th><th>名</th><th>理論</th><th>實際</th><th>誤差</th></tr>");
+let maxErr = 0;
+for (const v of [9, 8, 7, 6]) {
+  const theory = YAO_THEORETICAL[v];
+  const actual = counts[v] / N;
+  const err = Math.abs(actual - theory);
+  maxErr = Math.max(maxErr, err);
+  log(`<tr><td>${v}</td><td>${yaoMeta(v).name_zh}</td>` +
+      `<td>${(theory*100).toFixed(2)}%</td>` +
+      `<td>${(actual*100).toFixed(2)}%</td>` +
+      `<td>${(err*100).toFixed(2)}%</td></tr>`);
+}
+log("</table>");
+// Note: the click-based UI uses user-chosen splits, which are uniformly drawn
+// here. So this test measures what we'd see with random splits, and it should
+// match theoretical probabilities within ~0.5% at N=20000.
+assert(maxErr < 0.01, `max |actual - theory| < 1% : ${(maxErr*100).toFixed(2)}%`);
+
+// ============================================================================
+// Test 3 — King Wen lookup table is bijective and covers 1..64
+// ============================================================================
+section("Test 3 — King Wen 映射表完整性");
+const kwNums = Object.keys(KW_TO_KEY).map(Number).sort((a,b)=>a-b);
+assert(kwNums.length === 64 && kwNums[0] === 1 && kwNums[63] === 64,
+  `KW_TO_KEY has 64 entries, 1..64`);
+const keys = new Set(Object.values(KW_TO_KEY));
+assert(keys.size === 64, `all 64 keys are distinct`);
+assert(Object.keys(KEY_TO_KW).length === 64, `KEY_TO_KW has 64 entries`);
+
+// Spot checks
+const spot = [
+  { kw:  1, key: "111111", name: "乾為天" },
+  { kw:  2, key: "000000", name: "坤為地" },
+  { kw: 11, key: "000111", name: "地天泰" },
+  { kw: 12, key: "111000", name: "天地否" },
+  { kw: 63, key: "010101", name: "水火既濟" },
+  { kw: 64, key: "101010", name: "火水未濟" },
+];
+for (const { kw, key, name } of spot) {
+  assert(KW_TO_KEY[kw] === key, `KW ${kw} (${name}) → ${key} (got ${KW_TO_KEY[kw]})`);
+}
+
+// ============================================================================
+// Test 4 — end-to-end: a full 18 變, derive 本/變/互
+// ============================================================================
+section("Test 4 — 端到端抽卦");
+const yaos = [];
+for (let i = 0; i < 6; i++) yaos.push(autoYao().value);
+log(`<pre>6 爻值 (bottom→top): ${yaos.join(" ")}</pre>`);
+const h = deriveHexagrams(yaos);
+log(`<pre>
+本卦 ${hexagramSymbol(h.ben.kw)}  KW ${h.ben.kw}   lines ${h.ben.lines.join("")}
+變卦 ${hexagramSymbol(h.bian.kw)}  KW ${h.bian.kw}   lines ${h.bian.lines.join("")}
+互卦 ${hexagramSymbol(h.hu.kw)}  KW ${h.hu.kw}   lines ${h.hu.lines.join("")}
+changing lines: ${JSON.stringify(h.changingLines)}
+</pre>`);
+assert([1,64].includes(h.ben.kw) || h.ben.kw >= 1 && h.ben.kw <= 64, `本卦 KW in 1..64`);
+assert(h.bian.kw >= 1 && h.bian.kw <= 64, `變卦 KW in 1..64`);
+assert(h.hu.kw >= 1 && h.hu.kw <= 64, `互卦 KW in 1..64`);
+
+// ============================================================================
+// Test 5 — 互卦 formula sanity
+// ============================================================================
+section("Test 5 — 互卦 derivation formula");
+// For 乾為天 (all solid), 互卦 should also be all solid → 乾為天 (KW 1)
+{
+  const h = deriveHexagrams([7,7,7,7,7,7]);
+  assert(h.hu.kw === 1, `互(乾為天) = 乾為天`);
+}
+// For 坤為地 (all broken), 互卦 → 坤為地
+{
+  const h = deriveHexagrams([8,8,8,8,8,8]);
+  assert(h.hu.kw === 2, `互(坤為地) = 坤為地`);
+}
+// For 地天泰 (lines: 1,1,1,0,0,0), 互卦 lines = [1,1,0,1,0,0]
+// = upper 001=艮, lower 011=巽 → 山風蠱 (KW 18)
+{
+  const h = deriveHexagrams([7,7,7,8,8,8]);
+  const expected = [1,1,0,1,0,0];
+  assert(JSON.stringify(h.hu.lines) === JSON.stringify(expected),
+    `互(地天泰).lines = ${expected}, got ${h.hu.lines}`);
+  assert(h.hu.kw === 18, `互(地天泰) = 山風蠱 (KW 18)`);
+}
+
+section("Done");
+</script>
+</body>
+</html>

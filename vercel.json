@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/*.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "^/$",                   "dest": "/frontend/index.html" },
+    { "src": "^/api/divine/?$",       "dest": "/api/divine.py"       },
+    { "src": "^/lib/(.*)$",           "dest": "/lib/$1"              },
+    { "src": "^/data/(.*)$",          "dest": "/data/$1"             },
+    { "src": "^/frontend/(.*)$",      "dest": "/frontend/$1"         }
+  ]
+}
