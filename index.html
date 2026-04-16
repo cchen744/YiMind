@@ -262,8 +262,8 @@ footer a { color: var(--muted); text-decoration: underline dotted; }
 //  ------------------------------------------------------------------------
 //  State machine: intro → divining → result → interpretation
 // ============================================================================
-import { oneBian, oneYao, yaoMeta } from "../lib/dayan.js";
-import { deriveHexagrams, hexagramSymbol } from "../lib/hexagram.js";
+import { oneBian, oneYao, yaoMeta } from "./lib/dayan.js";
+import { deriveHexagrams, hexagramSymbol } from "./lib/hexagram.js";
 
 // ---- API endpoint: same-origin on Vercel. For local testing you can
 // override with ?api=https://yimind.vercel.app
@@ -272,7 +272,7 @@ const API_BASE = params.get("api") || "";
 
 // ---- Load hexagram metadata (names, pinyin, translations)
 let HEX_DB = null;
-fetch("../data/hexagrams.json")
+fetch("./data/hexagrams.json")
   .then(r => r.json())
   .then(j => { HEX_DB = Object.fromEntries(j.hexagrams.map(h => [h.kw, h])); })
   .catch(() => { HEX_DB = {}; }); // fall back gracefully
