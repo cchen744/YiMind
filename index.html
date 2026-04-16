@@ -292,7 +292,7 @@ const I18N = {
     "prog.yao": "第", "prog.yaoOf": "爻 / 六爻",
     "prog.bian": "第", "prog.bianOf": "變 / 三變",
     "stalks.hint": "請點擊下方蓍草堆，將其一分為二（點擊位置左側為左堆）",
-    "interpretBtn": "請 DeepSeek 解卦",
+    "interpretBtn": "請 AI 解卦",
     "restartBtn": "重新起卦",
     "interp.title": "卦象解讀",
     "footer.src": "源自《易經・繫辭上傳》",
@@ -305,7 +305,7 @@ const I18N = {
       `第 ${"初二三四五上"[yaoIdx]} 爻：${value}（${yaoMeta(value).name_zh}）`,
     "fill.question": "請先輸入所問之事。",
     "connecting": "正在請求解讀…",
-    "apiError": "連接 DeepSeek 失敗：",
+    "apiError": "連接解讀服務失敗：",
   },
   en: {
     "title": "YiMind",
@@ -318,7 +318,7 @@ const I18N = {
     "prog.yao": "Line ", "prog.yaoOf": " of 6",
     "prog.bian": "變 ", "prog.bianOf": " of 3",
     "stalks.hint": "Click the stalk pile below to split it in two (stalks left of the click form the left pile)",
-    "interpretBtn": "Ask DeepSeek to interpret",
+    "interpretBtn": "Ask AI to interpret",
     "restartBtn": "Restart",
     "interp.title": "Interpretation",
     "footer.src": "Method from the Great Commentary of the I Ching",
@@ -331,7 +331,7 @@ const I18N = {
       `Line ${yaoIdx+1}: ${value} (${yaoMeta(value).name_en})`,
     "fill.question": "Please enter your question first.",
     "connecting": "Contacting DeepSeek…",
-    "apiError": "DeepSeek connection failed: ",
+    "apiError": "Interpretation service failed: ",
   }
 };
 let lang = "zh";
@@ -361,6 +361,9 @@ function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (id === "screen-divining") {
+    requestAnimationFrame(() => { sizeCanvas(); drawStalks(); });
+  }
 }
 
 // ============================================================================

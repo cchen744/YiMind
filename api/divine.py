@@ -159,7 +159,7 @@ class handler(BaseHTTPRequestHandler):
 
         api_key = os.environ.get("DEEPSEEK_API_KEY")
         if not api_key:
-            return self._send_error(500, "DEEPSEEK_API_KEY not configured")
+            return self._send_error(500, "API key not configured")
 
         # ---- Build messages ----
         try:
@@ -190,9 +190,9 @@ class handler(BaseHTTPRequestHandler):
             upstream = urllib.request.urlopen(req, timeout=60)
         except urllib.error.HTTPError as e:
             detail = e.read().decode("utf-8", errors="ignore")[:500]
-            return self._send_error(e.code, f"DeepSeek HTTP {e.code}: {detail}")
+            return self._send_error(e.code, f"Upstream HTTP {e.code}: {detail}")
         except Exception as e:
-            return self._send_error(502, f"DeepSeek unreachable: {e}")
+            return self._send_error(502, f"Upstream service unreachable: {e}")
 
         self.send_response(200)
         self._send_cors()
