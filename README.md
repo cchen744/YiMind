@@ -2,6 +2,8 @@
 
 A bilingual (English / 繁體中文) IChing 大衍筮法 divination web app, designed to be embedded in the CLACC (Chinese Language & Culture Club) website at [claccuw.com](https://www.claccuw.com/). Users perform an authentic yarrow-stalk divination by clicking to split the stalk pile, and receive an interpretation of 本卦 / 變卦 / 互卦 from the DeepSeek API.
 
+Go to [yimind](https://yimind.vercel.app/) to find your fortune.
+
 ## Architecture
 
 ```
