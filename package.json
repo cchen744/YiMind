@@ -1,0 +1,18 @@
+{
+  "name": "yimind",
+  "version": "1.0.0",
+  "description": "YiMind · 易心 - IChing 大衍筮法 divination web app",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test command specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cchen744/YiMind.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  }
+}
